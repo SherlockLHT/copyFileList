@@ -6,7 +6,7 @@ import os
 host = 'ftp.pegatroncorp.com'
 userName = 'FTP_Vendor476_RW'
 password = '(3C16vGac'
-current_path = 'D:\\log\\QV2'
+current_path = 'D:\\log\\BQ'
 
 def loginFTP():
 	try:
@@ -38,13 +38,26 @@ def logoutFTP(ftps):
 
 def getLocalFile(ftps,path):
 	try:
+		line = ''
+		project = ''
+		buildStage = ''
+		stationName = ''
 		all_file = os.listdir(path)
 		for file in all_file:
 			file = os.path.join(path,file)
 			if os.path.isdir(file):
 				getLocalFile(ftps,file)
 			elif '.filelist' == os.path.splitext(file)[1]:
-				upLoad(ftps,file,line=file.split('\\')[6],project=file.split('\\')[2],buildStage=file.split('\\')[3],stationName=file.split('\\')[4])
+				argv = file.split('\\')
+				if 6 < len(argv):
+					line = argv[6]
+				if 4 < len(argv):
+					stationName = argv[4]
+				if 3 < len(argv):
+					buildStage = argv[3]
+				if 2 < len(argv):
+					project = argv[2]
+				upLoad(ftps,file,line=line,project=project,buildStage=buildStage,stationName=stationName)
 	except Exception as e:
 		logging.error(e)
 		print e
@@ -87,6 +100,7 @@ def upLoad(ftps,filePath,line='',project='',buildStage='',stationName=''):
 			ftps.storbinary('STOR ' + file_name,open(filePath,'rb'))
 			logging.info('upload file: %s pass' % file_name)
 	except Exception as e:
+		logging.error(filePath)
 		logging.error(e)
 		print e
 		raise e
